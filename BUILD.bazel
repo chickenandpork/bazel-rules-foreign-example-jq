@@ -1,0 +1,66 @@
+load("@bazel_skylib//lib:dicts.bzl", "dicts")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
+
+CONFIGURE_ENV_VARS = {}
+
+configure_make(
+    name = "libonig",  # implicitly sets us to produce "libonig.a"
+    #configure_env_vars = { "AR": "" },
+    configure_in_place = True,
+    #configure_options = [ ],
+    env = select({
+        "@platforms//os:macos": dicts.add(
+            {"AR": ""},
+            CONFIGURE_ENV_VARS,
+        ),
+        "//conditions:default": CONFIGURE_ENV_VARS,
+    }),
+    lib_source = "@oniguruma//:all_src",
+    out_lib_dir = "lib",
+    #out_static_lib = ["onig/lib/libonig.a", "onig/lib/libonig.dylib" ],
+    targets = [
+        "install",
+    ],
+    #deps = [":built_with_bazel"],
+)
+
+configure_make(
+    name = "cmdjq",  # cannot name it "jq" because it implies a directory name that clashes during build
+    configure_in_place = True,
+    configure_options = [
+        "--disable-maintainer-mode",
+        "--enable-all-static",
+    ],
+    env = select({
+        "@platforms//os:macos": dicts.add(
+            {
+                "AR": "",
+                "LDFLAGS": "-O3 -Xlinker -no_exported_symbols -Xlinker -dead_strip",
+            },
+            CONFIGURE_ENV_VARS,
+        ),
+        "//conditions:default": CONFIGURE_ENV_VARS,
+    }),
+    lib_source = "@jq//:all_src",
+    out_binaries = ["jq"],
+    targets = [
+        "install",
+    ],
+    deps = [":libonig"],
+)
+
+filegroup(
+    name = "jq",
+    srcs = [":cmdjq"],
+    output_group = "jq",  # delivered binaries are grouped by name
+)
+
+# As an example of re-use, package up the binary; "tar xf bazel-bin/tar.tar" to unpack
+pkg_tar(
+    name = "tar",
+    srcs = [
+        ":jq",
+    ],
+)
