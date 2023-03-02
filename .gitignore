@@ -1,0 +1,4 @@
+bazel-bazel-rules-foreign-example-jq
+bazel-bin
+bazel-out
+bazel-testlogs

@@ -1,0 +1,26 @@
+# To install the dependencies for this file:
+# 1) pip install pre-commit
+#   (really, "sudo python3 -m pip install pre-commit")
+#
+# 2) pre-commit install --allow-missing-config
+#
+# yamllint checks this .pre-commit-config file as well
+---
+repos:
+  - repo: local
+    hooks:
+      - id: gazelle
+        name: bazel run //tools:gazelle
+        # gazelle works similarly as Buildifier, and we'd need it for any golang or python stuff anyhow
+        description: Gazelle also cleans up BUILD files as confirmed in starlark linter
+        language: system
+        entry: bazel run //tools:gazelle
+        # the python "identify" resource needs to be updated to recognize bazel files directly
+        files: .*\.bazel$ .*\.bzl$ WORKSPACE$
+      - id: gazelle
+        name: bazel run //tools:buildifier
+        # gazelle works nearly as well as Buildifier, but buildifier reformats more aggressively
+        description: Buildifier cleans up BUILD files as confirmed in starlark linter
+        language: system
+        entry: bazel run //tools:buildifier
+        files: .*\.bazel$ .*\.bzl$ WORKSPACE$

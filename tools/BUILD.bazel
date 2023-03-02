@@ -1,0 +1,11 @@
+load("@bazel_gazelle//:def.bzl", "gazelle")
+load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
+
+buildifier(
+    name = "buildifier",
+)
+
+# In some ways, having build buildifier and gazelle is redundant
+
+# gazelle:prefix github.com/chickenandpork/jq
+gazelle(name = "gazelle")
